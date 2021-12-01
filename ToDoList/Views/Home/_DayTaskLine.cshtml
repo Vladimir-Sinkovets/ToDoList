@@ -1,0 +1,13 @@
+﻿@model DayTask
+@{
+    string check = Model.IsDone ? "☑" : "◻";
+}
+<div class="row">
+    <div class="col-sm-10">
+        <a asp-action="ChangeTaskValue" asp-controller="Task" asp-route-taskId="@Model.Id">@check</a>
+        @Model.Description  
+    </div>
+    <div class="col-sm-2">
+        <a class="btn btn-primary btn-sm" asp-action="DeleteTask" asp-controller="Task" asp-route-taskId="@Model.Id">Delete task</a>
+    </div>
+</div>
