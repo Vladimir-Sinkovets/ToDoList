@@ -1,0 +1,37 @@
+﻿@model EditPeriodTaskViewModel
+<div>
+    <h3>Days of the month</h3>
+    <p>
+        Write days you want to have task
+    </p>
+    <form method="post" asp-action="AddPeriodTask" asp-controller="Task">
+        <input type="hidden" name="type" value="daysInMonth" />
+        <label class="form-label">Description</label>
+        <input class="form-control" type="text" name="description" value="" />
+        <label class="form-label">Days</label>
+        <input class="form-control" type="text" name="value" value="1 2 3" />
+        <input class="btn btn-primary" type="submit" name="name" value="Save" />
+    </form>
+</div>
+<div>
+    <p>
+        Added period tasks:
+    </p>
+    <div>
+        <ul class="list-group">
+            @foreach (var task in Model.PeriodTasks)
+            {
+                <li class="list-group-item">
+                    <div class="row">
+                        <div class="col-sm-10">
+                            @task.Description ---> @task.Value
+                        </div>
+                        <div class="col-sm-2">
+                            <a asp-action="DeletePeriodTask" asp-controller="Task" asp-route-periodTaskId="@task.Id" class="btn btn-primary">Delete</a>
+                        </div>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

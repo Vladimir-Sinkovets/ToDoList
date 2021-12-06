@@ -1,32 +1,32 @@
 ﻿@model TodayTasksViewModel
-<div class="row">
-    <p class="h3 col-sm-10">
-        @DateTime.Now.DayOfWeek @DateTime.Now.ToString("dd:MM:yy")
-    </p>
-    <p class="h2 text-right col-sm-2">
-        @Model.Progress() %
-    </p>
-</div>
-<hr>
-<div>
-    @for (int i = 0; i < Model.Tasks.Count; i++)
-    {
-        @await Html.PartialAsync("_DayTaskLine", Model.Tasks[i])
-        
-    }
-</div>
-<hr>
-<div>
-    <form method="post" asp-action="AddTodayTasks" asp-controller="Task">
-        <input type="text" name="description" />
-        <input type="submit" value="Add new task" />
-    </form>
-</div>
-<hr>
-<div>
-    @for (int i = 0; i < Model.Tasks.Count; i++)
-    {
-        @:Какая-то ежедневная задача
-        <br />
-    }
+<div class="container m-2">
+    <div class="row">
+        <p class="h3 col-sm-10">
+            @DateTime.Now.DayOfWeek @DateTime.Now.ToString("dd:MM:yy")
+        </p>
+        <p class="h2 text-right col-sm-2">
+            @Model.Progress() %
+        </p>
+    </div>
+    <hr>
+    <div class="list-group">
+        @for (int i = 0; i < Model.Tasks.Count; i++)
+        {
+            @await Html.PartialAsync("_DayTaskLine", Model.Tasks[i])
+        }
+    </div>
+    <hr>
+    <div class="container">
+        <form method="post" asp-action="AddTodayTasks" asp-controller="Task" class="row">
+            <input class="form-control col-sm-10" type="text" name="taskDescription" />
+            <input class="btn btn-primary col-sm-2" type="submit" value="Add new task" />
+        </form>
+    </div>
+    <hr>
+    <div class="list-group">
+        @for (int i = 0; i < Model.PeriodTasks.Count; i++)
+        {
+            @await Html.PartialAsync("_PeriodTaskLine", Model.PeriodTasks[i])
+        }
+    </div>
 </div>

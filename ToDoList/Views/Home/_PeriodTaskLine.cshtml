@@ -1,0 +1,10 @@
+﻿@model PeriodTaskLineInfo
+@{
+    string check = Model.IsDone ? "☑" : "◻";
+}
+<div class="list-group-item">
+    <div class="row">
+        <a asp-action="ChangePeriodTaskRecord" asp-controller="Task" asp-route-taskId="@Model.Id">@check</a>
+        &nbsp @Model.Description
+    </div>
+</div>
