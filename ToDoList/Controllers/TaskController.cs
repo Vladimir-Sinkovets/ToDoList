@@ -36,6 +36,13 @@ namespace ToDoList.Controllers
 
             return RedirectToActionPermanent("TodayTaskList", "Home");
         }
+        public RedirectToActionResult DeleteTask(int taskId)
+        {
+            DayTask task = db.DayTasks.FirstOrDefault(task => task.Id == taskId);
+            db.DayTasks.Remove(task);
+            db.SaveChanges();
+            return RedirectToAction("TodayTaskList", "Home");
+        }
         public RedirectToActionResult ChangeTaskRecord(int taskId)
         {
             DayTask task = db.DayTasks.FirstOrDefault(task => task.Id == taskId);
@@ -43,12 +50,30 @@ namespace ToDoList.Controllers
             db.SaveChanges();
             return RedirectToAction("TodayTaskList", "Home");
         }
-        public RedirectToActionResult DeleteTask(int taskId)
+
+        public RedirectToActionResult AddPeriodTask(string description, string value, string type)
         {
-            DayTask task = db.DayTasks.FirstOrDefault(task => task.Id == taskId);
-            db.DayTasks.Remove(task);
+            PeriodTask task = new PeriodTask() 
+            { 
+                Type = type, 
+                User = db.Users.FirstOrDefault(user => user.Email == HttpContext.User.Identity.Name),
+                Value = value,
+                Description = description,
+            };
+            db.PeriodTasks.Add(task);
             db.SaveChanges();
-            return RedirectToAction("TodayTaskList", "Home");
+            return RedirectToAction("EditPeriodTasks", "Home");
+        }
+        public RedirectToActionResult DeletePeriodTask(int periodTaskId)
+        {
+            PeriodTask task = db.PeriodTasks.FirstOrDefault(task => task.Id == periodTaskId);
+            db.PeriodTasks.Remove(task);
+            List<PeriodTaskRecord> records = db.PeriodTaskRecords
+                .Where(rec => rec.PeriodTask.Id == periodTaskId)
+                .ToList();
+            db.PeriodTaskRecords.RemoveRange(records);
+            db.SaveChanges();
+            return RedirectToAction("EditPeriodTasks", "Home");
         }
         public RedirectToActionResult ChangePeriodTaskRecord(int taskId)
         {
@@ -76,31 +101,5 @@ namespace ToDoList.Controllers
             db.SaveChanges();
             return RedirectToAction("TodayTaskList", "Home");
         }
-        public RedirectToActionResult DeletePeriodTask(int periodTaskId)
-        {
-            PeriodTask task = db.PeriodTasks.FirstOrDefault(task => task.Id == periodTaskId);
-            db.PeriodTasks.Remove(task);
-            List<PeriodTaskRecord> records = db.PeriodTaskRecords
-                .Where(rec => rec.PeriodTask.Id == periodTaskId)
-                .ToList();
-            db.PeriodTaskRecords.RemoveRange(records);
-            db.SaveChanges();
-            return RedirectToAction("EditPeriodTasks", "Home");
-        }
-
-        public RedirectToActionResult AddPeriodTask(string description, string value, string type)
-        {
-            PeriodTask task = new PeriodTask() 
-            { 
-                Type = type, 
-                User = db.Users.FirstOrDefault(user => user.Email == HttpContext.User.Identity.Name),
-                Value = value,
-                Description = description,
-            };
-            db.PeriodTasks.Add(task);
-            db.SaveChanges();
-            return RedirectToAction("EditPeriodTasks", "Home");
-        }
-
     }
 }

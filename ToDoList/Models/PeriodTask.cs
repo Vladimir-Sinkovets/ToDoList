@@ -26,6 +26,9 @@ namespace ToDoList.Models
                             .ToArray();
                         return days.Contains(date.Day);
                         break;
+                    case "daysInWeek":
+                        return date.DayOfWeek.ToString() == Value;
+                        break;
                     default:
                         break;
                 }

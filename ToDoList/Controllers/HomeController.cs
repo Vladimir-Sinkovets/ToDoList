@@ -49,7 +49,6 @@ namespace ToDoList.Controllers
             };
             return View(model);
         }
-
         private List<DayTask> GetTaskForToday()
         {
             return db.DayTasks

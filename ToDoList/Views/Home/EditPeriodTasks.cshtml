@@ -1,6 +1,7 @@
 ﻿@model EditPeriodTaskViewModel
+@* adding period tasks for month *@
 <div>
-    <h3>Days of the month</h3>
+    <h3>Add task (days of the month)</h3>
     <p>
         Write days you want to have task
     </p>
@@ -13,6 +14,35 @@
         <input class="btn btn-primary" type="submit" name="name" value="Save" />
     </form>
 </div>
+<hr />
+@* adding period tasks for week *@
+<div>
+    <h3> Add task (days of the week) </h3>
+    <p>
+        Write days you want to have task
+    </p>
+    <form method="post" asp-action="AddPeriodTask" asp-controller="Task">
+        <input type="hidden" name="type" value="daysInWeek" />
+
+        <label class="form-label">Description</label>
+        <input class="form-control" type="text" name="description" value="" />
+
+        <label class="form-label">Days</label>
+        <br/>
+        <select class="form-select" name="value">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+        </select>
+        <br/>
+        <input class="btn btn-primary" type="submit" name="name" value="Save" />
+    </form>
+</div>
+@* added period tasks *@
 <div>
     <p>
         Added period tasks:
