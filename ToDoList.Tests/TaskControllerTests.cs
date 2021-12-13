@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ using ToDoList.Models.ViewModels;
 
 namespace ToDoList.Tests
 {
-    public class HomeControllerTests
+    public class TaskControllerTests
     {
         private Mock<IRepository> CreateMockRepository()
         {
@@ -56,34 +56,23 @@ namespace ToDoList.Tests
             fakeRepository.Setup(obj => obj.GetAllDayTasks()).Returns(tasksData.AsQueryable());
             fakeRepository.Setup(obj => obj.GetAllPeriodTasks()).Returns(periodTasksData.AsQueryable());
             fakeRepository.Setup(obj => obj.GetAllPeriodTaskRecords()).Returns(periodTasksRecordsData.AsQueryable());
+            fakeRepository.Setup(obj => obj.AddDayTask(It.IsAny<DayTask>())).Callback<DayTask>(d => tasksData.Add(d));
             return fakeRepository;
         }
+
         [Fact]
-        public void TodayTasksIsCorrectListOfTasksAndListOfPeriodTasks()
+        public void AddTaskTest() 
         {
             // arrange
             var fakeRepository = CreateMockRepository();
-            HomeController home = new HomeController(fakeRepository.Object, new FakeAuthentication() { Return = "v1@mail.com" });
+            TaskController controller = new TaskController(fakeRepository.Object, new FakeAuthentication() { Return = "v1@mail.com" });
             // act
-            ViewResult todayPage = home.TodayTaskList() as ViewResult;
+            controller.AddTodayTasks("new Task");
             // assert
-            var model = (TodayTasksViewModel) todayPage.Model;
-            Assert.Equal(0, model.Progress());
-            Assert.Equal(5, model.Tasks.Count);
-            Assert.Equal(2, model.PeriodTasks.Count);
+            Assert.Equal("new Task", fakeRepository.Object
+                .GetAllDayTasks()
+                .FirstOrDefault(t => t.Description == "new Task")
+                .Description);
         }
-        [Fact]
-        public void EditPeriodTasksIsCorrectPeriodTaskaList()
-        {
-            //arrange
-            var fakeRepository = CreateMockRepository();
-            HomeController home = new HomeController(fakeRepository.Object, new FakeAuthentication() { Return = "v1@mail.com" });
-            //act
-            ViewResult todayPage = home.EditPeriodTasks() as ViewResult;
-            //assert
-            var model = (EditPeriodTaskViewModel) todayPage.Model;
-            Assert.Equal(2, model.PeriodTasks.Count);
-        }
-
     }
 }

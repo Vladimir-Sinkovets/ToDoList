@@ -5,24 +5,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ToDoList.Models;
+using ToDoList.Services;
 
 namespace ToDoList.Controllers
 { 
     public class TaskController : Controller
     {
-        private ApplicationDbContext db;
+        private IRepository db;
+        private AuthenticationHelper authentication;
 
-        public TaskController(ApplicationDbContext db)
+        public TaskController(IRepository db, AuthenticationHelper authentication)
         {
             this.db = db;
+            this.authentication = authentication;
         }
 
         [HttpPost]
-        public async Task<RedirectToActionResult> AddTodayTasks(string taskDescription)
+        public RedirectToActionResult AddTodayTasks(string taskDescription)
         {
-            int count = db.Users.ToList().Count();
-            User user = await db.Users.FirstOrDefaultAsync(user => user.Email == User.Identity.Name);
-            List<User> users = db.Users.Where(user => user.Email == User.Identity.Name).ToList();
+            var allUsers = db.GetAllUsers(); 
+            int count = allUsers.ToList().Count();
+            User user = allUsers.FirstOrDefault(user => user.Email == authentication.CurrentUserName(HttpContext));
+            List<User> users = allUsers.Where(user => user.Email == authentication.CurrentUserName(HttpContext)).ToList();
             DayTask dayTask = new DayTask()
             {
                 Date = DateTime.Now,
@@ -30,64 +34,61 @@ namespace ToDoList.Controllers
                 IsDone = false,
                 User = user,
             };
-            db.DayTasks.Add(dayTask);
-
-            await db.SaveChangesAsync();
+            db.AddDayTask(dayTask);
 
             return RedirectToActionPermanent("TodayTaskList", "Home");
         }
         public RedirectToActionResult DeleteTask(int taskId)
         {
-            DayTask task = db.DayTasks.FirstOrDefault(task => task.Id == taskId);
-            db.DayTasks.Remove(task);
-            db.SaveChanges();
+            DayTask task = db.GetAllDayTasks().FirstOrDefault(task => task.Id == taskId);
+            db.RemoveDayTask(task);
             return RedirectToAction("TodayTaskList", "Home");
         }
         public RedirectToActionResult ChangeTaskRecord(int taskId)
         {
-            DayTask task = db.DayTasks.FirstOrDefault(task => task.Id == taskId);
-            task.IsDone = !task.IsDone;
-            db.SaveChanges();
+            db.ChangeDayTask(t => t.IsDone = !t.IsDone, taskId);
             return RedirectToAction("TodayTaskList", "Home");
         }
 
         public RedirectToActionResult AddPeriodTask(string description, string value, string type)
         {
-            PeriodTask task = new PeriodTask() 
-            { 
-                Type = type, 
-                User = db.Users.FirstOrDefault(user => user.Email == HttpContext.User.Identity.Name),
+            var allUsers = db.GetAllUsers();
+            PeriodTask task = new PeriodTask()
+            {
+                Type = type,
+                User = allUsers.FirstOrDefault(user => user.Email == authentication.CurrentUserName(HttpContext)),
                 Value = value,
                 Description = description,
             };
-            db.PeriodTasks.Add(task);
-            db.SaveChanges();
+            db.AddPeriodTask(task);
             return RedirectToAction("EditPeriodTasks", "Home");
         }
         public RedirectToActionResult DeletePeriodTask(int periodTaskId)
         {
-            PeriodTask task = db.PeriodTasks.FirstOrDefault(task => task.Id == periodTaskId);
-            db.PeriodTasks.Remove(task);
-            List<PeriodTaskRecord> records = db.PeriodTaskRecords
+            var allPeriodTasks = db.GetAllPeriodTasks();
+            var allPeriodTaskRecords = db.GetAllPeriodTaskRecords();
+            PeriodTask task = allPeriodTasks.FirstOrDefault(task => task.Id == periodTaskId);
+            db.RemovePeriodTask(task);
+            List<PeriodTaskRecord> records = db.GetAllPeriodTaskRecords()
                 .Where(rec => rec.PeriodTask.Id == periodTaskId)
                 .ToList();
-            db.PeriodTaskRecords.RemoveRange(records);
-            db.SaveChanges();
+            db.RemovePeriodTaskRecordsRange(records);
             return RedirectToAction("EditPeriodTasks", "Home");
         }
         public RedirectToActionResult ChangePeriodTaskRecord(int taskId)
         {
-            //DayTask task = db.DayTasks.FirstOrDefault(task => task.Id == taskId);
-            //task.IsDone = !task.IsDone;
-            //db.SaveChanges();
-            PeriodTask periodTask = db.PeriodTasks.FirstOrDefault(task => task.Id == taskId);
+            var allPeriodTasks = db.GetAllPeriodTasks();
+            var allPeriodTaskRecords = db.GetAllPeriodTaskRecords();
+            var allUsers = db.GetAllUsers();
+
+            PeriodTask periodTask = allPeriodTasks.FirstOrDefault(task => task.Id == taskId);
             if(periodTask == null)
                 return RedirectToAction("TodayTaskList", "Home");
-            PeriodTaskRecord taskRecord = db.PeriodTaskRecords.FirstOrDefault(task => task.PeriodTask.Id == periodTask.Id);
+            PeriodTaskRecord taskRecord = allPeriodTaskRecords.FirstOrDefault(task => task.PeriodTask.Id == periodTask.Id);
             if(taskRecord == null)
             {
-                User user = db.Users.FirstOrDefault(user => user.Email == HttpContext.User.Identity.Name);
-                db.PeriodTaskRecords.Add(new PeriodTaskRecord()
+                User user = allUsers.FirstOrDefault(user => user.Email == authentication.CurrentUserName(HttpContext));
+                db.AddPeiodTaskRecord(new PeriodTaskRecord()
                 {
                     Date = DateTime.Now,
                     PeriodTask = periodTask,
@@ -96,9 +97,8 @@ namespace ToDoList.Controllers
             }
             else
             {
-                db.PeriodTaskRecords.Remove(taskRecord);
+                db.RemovePeriodTaskRecord(taskRecord);
             }
-            db.SaveChanges();
             return RedirectToAction("TodayTaskList", "Home");
         }
     }

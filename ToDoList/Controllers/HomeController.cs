@@ -8,16 +8,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using ToDoList.Models;
 using ToDoList.Models.ViewModels;
+using ToDoList.Services;
 
 namespace ToDoList.Controllers
 {
     public class HomeController : Controller
     {
-        private ApplicationDbContext db;
+        private IRepository db;
+        private AuthenticationHelper authentication;
 
-        public HomeController(ApplicationDbContext db)
+        public HomeController(IRepository db, AuthenticationHelper authentication)
         {
             this.db = db;
+            this.authentication = authentication;
         }
 
         [Authorize]
@@ -26,7 +29,7 @@ namespace ToDoList.Controllers
         {
             EditPeriodTaskViewModel model = new EditPeriodTaskViewModel()
             {
-                PeriodTasks = db.PeriodTasks.Where(t => t.User.Email == HttpContext.User.Identity.Name).ToList(),
+                PeriodTasks = db.GetAllPeriodTasks().Where(t => t.User.Email == authentication.CurrentUserName(HttpContext)).ToList(),
             };
             return View(model);
         }
@@ -51,9 +54,10 @@ namespace ToDoList.Controllers
         }
         private List<DayTask> GetTaskForToday()
         {
-            return db.DayTasks
+            var dayTasks = db.GetAllDayTasks();
+            return dayTasks
                 .Where(task =>
-                    task.User.Email == User.Identity.Name &&
+                    task.User.Email == authentication.CurrentUserName(HttpContext) &&
                     task.Date.Year == DateTime.Now.Year &&
                     task.Date.Month == DateTime.Now.Month &&
                     task.Date.Day == DateTime.Now.Day)
@@ -61,12 +65,12 @@ namespace ToDoList.Controllers
         }
         private List<PeriodTaskLineInfo> GetPeriodTasksForToday()
         {
-            List<PeriodTask> periodTasks = db.PeriodTasks
-                .Where(t => t.User.Email == HttpContext.User.Identity.Name)
+            List<PeriodTask> periodTasks = db.GetAllPeriodTasks()
+                .Where(t => t.User.Email == authentication.CurrentUserName(HttpContext))
                 .ToList()
                 .Where(t => t.IsMatch(DateTime.Now))
                 .ToList();
-            List<PeriodTaskRecord> records = db.PeriodTaskRecords
+            List<PeriodTaskRecord> records = db.GetAllPeriodTaskRecords()
                 .Where(rec => 
                     rec.Date.Year == DateTime.Now.Year &&
                     rec.Date.Month == DateTime.Now.Month &&
